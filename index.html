@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Não Cabe — o orçamento é uma escolha</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f2eee6; --ink:#141414; --red:#d62828; --red2:#8c1c13; --green:#1f7a3a;
+    --gold1:#f7e08a; --gold2:#c9a227; --gold3:#8a6d10; --c:56px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:var(--paper);color:var(--ink);font-family:Inter,system-ui,sans-serif;overflow:hidden;
+    -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+  .display{font-family:Anton,Impact,sans-serif;text-transform:uppercase;letter-spacing:.01em;line-height:.95}
+  button{font-family:Anton,Impact,sans-serif;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;border:3px solid var(--ink);
+    background:var(--ink);color:#fff;font-size:20px;padding:12px 22px;box-shadow:4px 4px 0 var(--red);transition:transform .08s}
+  button:active{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--red)}
+  a{color:var(--ink)}
+  em{font-style:normal;color:var(--red)}
+
+  /* ---------- GAME ---------- */
+  #game{position:relative;margin:0 auto;padding:10px 12px 8px;height:100%;display:flex;flex-direction:column;align-items:center;touch-action:none}
+  #hud{width:100%;display:flex;align-items:center;gap:10px;height:30px}
+  #hud .yr{font-size:22px;white-space:nowrap}
+  .tbar{flex:1;height:10px;border:2px solid var(--ink);position:relative;overflow:hidden;background:#fff}
+  .tbar i{position:absolute;left:0;top:0;bottom:0;background:var(--ink);width:100%}
+  #snd{font-size:12px;padding:4px 8px;box-shadow:2px 2px 0 var(--red)}
+
+  #jurosZone{width:100%;height:58px;margin-top:8px;position:relative}
+  #juros{position:absolute;left:0;top:0;height:100%;width:40%;min-width:150px;
+    background:linear-gradient(120deg,var(--gold1) 0%,var(--gold2) 45%,#f3d36b 60%,var(--gold2) 100%);
+    background-size:200% 100%;animation:sheen 3s linear infinite;
+    border:2px solid var(--gold3);box-shadow:3px 3px 0 var(--gold3);display:flex;flex-direction:column;justify-content:center;padding:0 12px;
+    transition:width .6s cubic-bezier(.3,1.4,.5,1);overflow:hidden}
+  #juros b{font-family:Anton,Impact,sans-serif;font-size:18px;font-weight:400;white-space:nowrap}
+  #juros small{font-size:10.5px;font-weight:600;white-space:nowrap;opacity:.8}
+  @keyframes sheen{to{background-position:-200% 0}}
+  .stamp{position:absolute;right:10px;top:50%;font-family:Anton,Impact,sans-serif;font-size:20px;color:var(--green);border:3px solid var(--green);
+    padding:0 6px;transform:translateY(-50%) rotate(-12deg) scale(2);opacity:0;pointer-events:none;animation:stamp 1.4s ease-out forwards}
+  @keyframes stamp{15%{opacity:1;transform:translateY(-50%) rotate(-12deg) scale(1)}75%{opacity:1}100%{opacity:0;transform:translateY(-50%) rotate(-12deg) scale(1)}}
+
+  .lbl{width:100%;display:flex;justify-content:space-between;align-items:flex-end;font-size:11px;font-weight:800;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--red);margin:10px 0 6px;gap:6px}
+  .lbl span{color:#777;font-weight:600;letter-spacing:.05em;white-space:nowrap}
+  #meta{color:#fff;background:var(--green);padding:2px 6px;letter-spacing:.04em;font-weight:800}
+
+  #board{position:relative;outline:4px solid var(--ink);background-color:#fff;flex:none;
+    background-image:linear-gradient(to right,rgba(0,0,0,.07) 1px,transparent 1px),linear-gradient(to bottom,rgba(0,0,0,.07) 1px,transparent 1px);
+    background-size:var(--c) var(--c)}
+  .zone{position:absolute;background:rgba(214,40,40,.13);border:3px solid var(--red);transition:top .9s cubic-bezier(.6,0,.3,1),height .9s cubic-bezier(.6,0,.3,1);
+    display:flex;align-items:center;justify-content:center;pointer-events:none}
+  .zone b{writing-mode:vertical-rl;transform:rotate(180deg);font-family:Anton,Impact,sans-serif;font-weight:400;color:rgba(214,40,40,.55);
+    font-size:calc(var(--c)*.42);letter-spacing:.06em;white-space:nowrap}
+  #board.want .zone{background:rgba(214,40,40,.25);animation:zpulse .8s infinite alternate}
+  @keyframes zpulse{to{border-color:#ff6b6b}}
+  .dead{position:absolute;pointer-events:none;background:repeating-linear-gradient(45deg,#bbb 0 6px,#ddd 6px 12px);
+    display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#555;text-align:center;opacity:0;transition:opacity .6s .5s}
+  .dead.on{opacity:1}
+
+  #tray{width:100%;height:86px;border:2px dashed #999;display:flex;gap:6px;padding:5px;flex:none}
+  .slot{flex:1;background:rgba(0,0,0,.035)}
+
+  #outbar{width:100%;display:flex;align-items:center;gap:8px;margin-top:8px;min-height:30px}
+  #outbar .t{font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--red);white-space:nowrap}
+  #outbar .t b{font-family:Anton,Impact,sans-serif;font-size:20px;font-weight:400;vertical-align:-2px}
+  #outbar.flash .t{animation:shake .4s}
+  #outchips{flex:1;display:flex;gap:4px;overflow:hidden;white-space:nowrap;mask-image:linear-gradient(to right,#000 80%,transparent);-webkit-mask-image:linear-gradient(to right,#000 80%,transparent)}
+  .chip{font-size:9.5px;font-weight:800;padding:3px 6px;border:1.5px solid var(--red);color:var(--red);text-decoration:line-through;flex:none}
+  .chip.lk{border-color:#555;color:#555}
+  #endbtn{font-size:13px;padding:6px 10px;box-shadow:3px 3px 0 var(--red);flex:none}
+
+  /* pieces */
+  .piece{position:absolute;display:flex;align-items:center;justify-content:center;text-align:center;border:2px solid var(--ink);
+    box-shadow:3px 3px 0 var(--ink);font-family:Anton,Impact,sans-serif;text-transform:uppercase;line-height:1;padding:2px;
+    cursor:grab;touch-action:none;transition:left .18s,top .18s,width .18s,height .18s,font-size .18s,filter .2s;z-index:5;overflow:hidden}
+  .piece span{pointer-events:none;letter-spacing:.02em;word-break:keep-all;overflow-wrap:normal}
+  .piece.k-s{background:var(--red);color:#fff}
+  .piece.k-e{background:var(--ink);color:#fff}
+  .piece.k-c{background:#4f5b66;color:#fff}
+  .piece.k-a{background:#fff;color:var(--ink)}
+  .piece.dragging{transition:none;z-index:50;box-shadow:8px 10px 0 rgba(0,0,0,.35);transform:rotate(-2deg) scale(1.03);cursor:grabbing}
+  .piece.pop{animation:pop .35s cubic-bezier(.3,1.6,.5,1)}
+  @keyframes pop{from{transform:scale(.2)}}
+  .piece.nope{animation:shake .3s}
+  @keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+  .piece.fall{transition:transform .7s ease-in,opacity .7s ease-in;transform:translateY(160px) rotate(25deg);opacity:0;pointer-events:none}
+  .piece.placed{animation:thunk .2s}
+  @keyframes thunk{50%{transform:scale(.94)}}
+  .piece.locked{filter:grayscale(1) brightness(.75);cursor:pointer}
+  .piece .lock{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    background:rgba(20,20,20,.55);pointer-events:none}
+  .piece.locked .lock{display:flex}
+  .lock svg{width:calc(var(--u,40px)*.5);height:calc(var(--u,40px)*.5);max-width:30px;max-height:30px;fill:#fff}
+  .lock i{font-style:normal;color:#fff;font-size:11px;letter-spacing:2px;font-family:Inter,sans-serif;font-weight:800}
+  .piece.hit{animation:hit .15s}
+  @keyframes hit{50%{transform:scale(1.08) rotate(2deg)}}
+  .piece.freed{animation:freed .5s}
+  @keyframes freed{30%{transform:scale(1.15);box-shadow:0 0 0 6px var(--green)}}
+
+  #preview{position:absolute;pointer-events:none;border:3px dashed var(--green);background:rgba(31,122,58,.15);z-index:4;display:none}
+  #preview.bad{border-color:var(--red);background:rgba(214,40,40,.15)}
+
+  #toast{position:fixed;left:50%;top:96px;transform:translate(-50%,-20px);width:min(92vw,420px);background:var(--ink);color:#fff;
+    padding:12px 14px;z-index:80;opacity:0;pointer-events:none;transition:all .35s;box-shadow:5px 5px 0 var(--red);text-align:center}
+  #toast.on{opacity:1;transform:translate(-50%,0)}
+  #toast b{display:block;font-family:Anton,Impact,sans-serif;font-weight:400;font-size:19px;text-transform:uppercase;line-height:1.05}
+  #toast small{display:block;margin-top:5px;font-size:12px;opacity:.85}
+
+  /* ---------- OVERLAYS ---------- */
+  .ov{position:fixed;inset:0;background:var(--paper);z-index:100;display:none;flex-direction:column;align-items:center;justify-content:center;
+    padding:28px 24px;text-align:center;overflow:auto}
+  .ov.on{display:flex}
+  .kick{font-size:11px;font-weight:800;letter-spacing:.2em;color:var(--red);text-transform:uppercase;margin-bottom:12px}
+  #intro h1{font-size:clamp(84px,26vw,140px)}
+  #intro h1 em{display:block}
+  #intro p{max-width:320px;margin:18px auto 28px;font-size:16px;line-height:1.4}
+  .foot{position:absolute;bottom:14px;left:0;right:0;font-size:10.5px;color:#888;padding:0 20px}
+  #yprev{display:none;border:2px solid var(--ink);padding:8px 12px;margin-bottom:22px;font-size:13px;font-weight:600}
+  #yprev.on{display:block}
+  #yprev b{font-family:Anton,Impact,sans-serif;font-weight:400;font-size:18px}
+  #yearcard h2{font-size:72px}
+  #yearcard p{max-width:330px;margin:14px auto;font-size:18px;line-height:1.35;font-weight:600}
+  #yearcard .how{font-size:14px;font-weight:400;color:#555;margin-bottom:26px;border-top:2px solid var(--ink);padding-top:14px}
+
+  #result{justify-content:flex-start}
+  #result .inner{max-width:380px;width:100%;margin:auto 0}
+  #result .score{font-size:96px;margin-top:4px}
+  #result .score small{font-size:40px}
+  #result .sub{font-weight:600;font-size:15px}
+  #result .years{margin:18px 0 0;border-top:2px solid var(--ink)}
+  #result .years div{display:flex;justify-content:space-between;align-items:baseline;padding:8px 2px;border-bottom:1px solid #ccc;font-size:14px;font-weight:600;text-align:left}
+  #result .years b{font-family:Anton,Impact,sans-serif;font-weight:400;font-size:20px}
+  #result .years small{display:block;font-size:11px;color:#777;font-weight:400}
+  #result .gold{margin:18px 0 0;padding:12px;background:linear-gradient(120deg,var(--gold1),var(--gold2));border:2px solid var(--gold3);
+    font-weight:800;font-size:14.5px;line-height:1.35}
+  #result .moral{font-size:40px;margin:22px 0 4px}
+  #result .btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:20px 0 14px}
+  #result .btns button{font-size:16px;padding:10px 16px}
+  #result .share{display:flex;gap:14px;justify-content:center;font-size:13px;font-weight:800}
+  #result .share a,#result .share span{border-bottom:2px solid var(--ink);text-decoration:none;cursor:pointer}
+  .sec{margin-top:30px;border-top:3px solid var(--ink);padding-top:16px}
+  .sec .kick{margin-bottom:10px}
+  .vwrap{position:relative;width:min(100%,300px);aspect-ratio:9/16;margin:0 auto;background:var(--ink);box-shadow:6px 6px 0 var(--red)}
+  .vwrap video{width:100%;height:100%;object-fit:cover;display:block;background:var(--ink)}
+  .vwrap .vmiss{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:#fff;
+    font-size:13px;padding:20px;line-height:1.4}
+  .vwrap .vmiss b{font-family:Anton,Impact,sans-serif;font-weight:400;font-size:22px;text-transform:uppercase}
+  .vwrap.missing .vmiss{display:flex}
+  .vwrap.missing video{display:none}
+  .vcred{margin-top:12px;font-size:12px;color:#666}
+  .vcred a{font-weight:800}
+  .guide{display:inline-block;margin-top:8px;font-size:12px;font-weight:800}
+  .cta{display:block;margin:4px auto 0;max-width:320px;padding:16px 18px;background:var(--red);color:#fff;text-decoration:none;
+    border:3px solid var(--ink);box-shadow:5px 5px 0 var(--ink);font-family:Anton,Impact,sans-serif;font-size:22px;text-transform:uppercase;line-height:1}
+  .cta small{display:block;font-family:Inter,sans-serif;font-size:12px;font-weight:600;text-transform:none;margin-top:6px;opacity:.92}
+  .cta:active{transform:translate(2px,2px);box-shadow:3px 3px 0 var(--ink)}
+  .author{display:flex;gap:14px;align-items:center;text-align:left;border:3px solid var(--ink);padding:14px;background:#fff;
+    color:var(--ink);text-decoration:none;box-shadow:5px 5px 0 var(--ink);max-width:340px;margin:0 auto;transition:transform .08s}
+  .author:active{transform:translate(2px,2px);box-shadow:3px 3px 0 var(--ink)}
+  .author .av{flex:none;width:58px;height:58px;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;
+    font-family:Anton,Impact,sans-serif;font-size:24px;box-shadow:3px 3px 0 var(--red)}
+  .author b{display:block;font-family:Anton,Impact,sans-serif;font-weight:400;font-size:22px;text-transform:uppercase;line-height:1}
+  .author p{font-size:13px;line-height:1.4;margin:5px 0 6px}
+  .author .go{font-size:13px;font-weight:800;border-bottom:2px solid var(--red)}
+  #result .disc{margin-top:16px;font-size:10px;color:#999;line-height:1.4}
+</style>
+</head>
+<body>
+
+<div id="game">
+  <div id="hud">
+    <div class="yr display" id="hudyr">Ano 1</div>
+    <div class="tbar"><i id="tfill"></i></div>
+    <button id="snd">Som ✓</button>
+  </div>
+
+  <div id="jurosZone">
+    <div id="juros"><b>Juros da dívida</b><small>fora do limite · sempre pago</small></div>
+  </div>
+
+  <div class="lbl"><div id="blbl">Orçamento · limite de despesas</div><span id="fillpct">0% ocupado</span><span id="meta" hidden>META ✓ CUMPRIDA</span></div>
+  <div id="board"></div>
+
+  <div class="lbl">Demandas da população <span>toque para girar</span></div>
+  <div id="tray"><div class="slot"></div><div class="slot"></div><div class="slot"></div><div class="slot"></div></div>
+
+  <div id="outbar">
+    <div class="t">SEM ATENDIMENTO: <b id="outn">0</b></div>
+    <div id="outchips"></div>
+    <button id="endbtn" hidden>Fechar o ano</button>
+  </div>
+  <div id="preview"></div>
+</div>
+
+<div id="toast"><b id="tt"></b><small id="ts"></small></div>
+
+<!-- TELA INICIAL -->
+<div class="ov on" id="intro">
+  <div class="kick">PLP 299/2026 · ajuste fiscal</div>
+  <h1 class="display">Não<em>cabe</em></h1>
+  <p>Três anos de orçamento público.<br>Um minuto cada. Quem paga a conta?</p>
+  <button id="play">Jogar</button>
+  <div class="foot">Um jogo de <b id="ifoot"></b> · simulação didática, valores ilustrativos.</div>
+</div>
+
+<!-- CARTÃO DO ANO -->
+<div class="ov" id="yearcard">
+  <div id="yprev"></div>
+  <div class="kick" id="yk"></div>
+  <h2 class="display" id="yt"></h2>
+  <p id="ytext"></p>
+  <p class="how" id="yhow"></p>
+  <button id="start">Começar</button>
+</div>
+
+<!-- RESULTADO FINAL -->
+<div class="ov" id="result">
+  <div class="inner">
+    <div class="kick">Três anos depois</div>
+    <div class="score display" id="rscore">0</div>
+    <div class="sub">serviços públicos atendidos</div>
+    <div class="years" id="ryears"></div>
+    <div class="gold">E os juros da dívida?<br>Pagos. Todos os anos. Fora do limite.</div>
+    <div class="moral display">O orçamento<br>é uma <em>escolha.</em></div>
+    <div class="btns"><button id="again">Jogar de novo</button></div>
+    <div class="share">
+      <a id="wa" href="#" target="_blank" rel="noopener">Mandar no WhatsApp</a>
+      <span id="copy">Copiar resultado</span>
+    </div>
+    <section class="sec">
+      <div class="kick">Entenda o PLP 299 em 1 minuto</div>
+      <div class="vwrap" id="vwrap">
+        <video id="vid" controls playsinline preload="metadata"></video>
+        <div class="vmiss"><b>Vídeo aqui</b>Coloque o arquivo <code>plp299.mp4</code> na mesma pasta deste jogo.</div>
+      </div>
+      <div class="vcred" id="vcred"></div>
+      <a class="guide" href="https://ismael-ds.github.io/decodificando/plp299.html" target="_blank" rel="noopener">Ler o guia completo →</a>
+    </section>
+
+    <section class="sec">
+      <div class="kick">Não fique só no jogo</div>
+      <a class="cta" id="comm" href="#" target="_blank" rel="noopener">Entrar na Mobilização Radical<small>Comunidade do MR no WhatsApp: organização, materiais e chamadas de mobilização</small></a>
+    </section>
+
+    <section class="sec">
+      <div class="kick">Quem fez este jogo</div>
+      <a class="author" id="alink" href="#" target="_blank" rel="noopener">
+        <div class="av" id="av"></div>
+        <div><b id="aname"></b><p id="abio"></p><span class="go" id="ago"></span></div>
+      </a>
+    </section>
+    <div class="disc">Simulação didática: tamanhos e quantidades não representam valores reais do orçamento.
+      O PLP não corta automaticamente um valor da saúde; ele reduz o espaço e muda regras que podem pressionar o financiamento dos serviços.</div>
+  </div>
+</div>
+
+<script>
+(() => {
+  // ================= CONFIGURAÇÃO — edite aqui =================
+  const CONFIG = {
+    SHARE_URL:      '',                       // endereço final do jogo (vai junto na mensagem do WhatsApp)
+    AUTOR_NOME:     'Francisco Daniel',
+    AUTOR_BIO:      'Advogado em João Pessoa (PB). Fiz este jogo para explicar o PLP 299 de um jeito que dá para sentir.',
+    AUTOR_LINK:     '',                       // ex.: https://instagram.com/seuperfil
+    AUTOR_LINK_TXT: '@seuperfil',
+    COMUNIDADE_URL: '',                       // link de convite da comunidade Mobilização Radical (MR) no WhatsApp
+    VIDEO_SRC:      'plp299.mp4',             // arquivo na mesma pasta do index.html
+    VIDEO_CREDITO:  '@perfil-da-camarada',    // quem fez o vídeo
+    VIDEO_CRED_URL: '',                       // ex.: link do post original no Instagram
+  };
+  // ==============================================================
+  const COLS = 6, ROWS = 6, DUR = 45000;
+  const SHARE_URL = CONFIG.SHARE_URL;
+
+  // k: s = saúde, e = educação, c = cidade, a = assistência/social
+  const BASE = [
+    {n:'Hospital', w:3,h:2,k:'s'}, {n:'Posto de saúde', w:2,h:2,k:'s'}, {n:'Vacina', w:1,h:1,k:'s'},
+    {n:'SAMU', w:2,h:1,k:'s'}, {n:'Farmácia popular', w:2,h:1,k:'s'},
+    {n:'Escola', w:2,h:2,k:'e'}, {n:'Creche', w:2,h:1,k:'e'}, {n:'Universidade', w:3,h:1,k:'e'},
+    {n:'Merenda', w:2,h:1,k:'e'}, {n:'Pesquisa', w:2,h:1,k:'e'},
+    {n:'Ônibus', w:3,h:1,k:'c'}, {n:'Saneamento', w:4,h:1,k:'c'}, {n:'Moradia', w:2,h:2,k:'c'},
+    {n:'Assistência social', w:2,h:1,k:'a'}, {n:'Cultura', w:1,h:1,k:'a'}, {n:'Esporte', w:2,h:1,k:'a'},
+  ];
+  const Y2 = [
+    {n:'Hospital', w:2,h:3,k:'s'}, {n:'Posto de saúde', w:2,h:2,k:'s'}, {n:'Vacina', w:1,h:1,k:'s'},
+    {n:'SAMU', w:2,h:1,k:'s'}, {n:'Farmácia popular', w:2,h:1,k:'s'}, {n:'UPA', w:2,h:1,k:'s'},
+    {n:'Escola', w:2,h:2,k:'e'}, {n:'Creche', w:2,h:1,k:'e'}, {n:'Universidade', w:3,h:1,k:'e'},
+    {n:'Merenda', w:2,h:1,k:'e'}, {n:'Pesquisa', w:2,h:1,k:'e'},
+    {n:'Ônibus', w:3,h:1,k:'c'}, {n:'Saneamento', w:4,h:1,k:'c'}, {n:'Moradia', w:2,h:2,k:'c'},
+    {n:'Assistência social', w:2,h:1,k:'a'}, {n:'Cultura', w:1,h:1,k:'a'},
+  ];
+  const Y3 = BASE.concat([{n:'UPA', w:2,h:1,k:'s'}, {n:'Biblioteca', w:1,h:1,k:'a'}]);
+
+  const YEARS = [
+    { tag:'o aperto', defs:BASE, gap:2400,
+      text:'As demandas da população cresceram.<br>O espaço do orçamento, quase nada.',
+      how:'Arraste os serviços para dentro do orçamento.<br>Toque num serviço para girá-lo.' },
+    { tag:'o SUS encolhe', defs:Y2, gap:2300, zone:true, shrinkAt:16000,
+      text:'A saúde tem um piso: 15% da receita.<br>Mas 15% <em>de quê?</em>',
+      how:'Serviços de saúde (vermelhos) só entram<br>na área do SUS. Fique de olho nela.' },
+    { tag:'o cadeado', defs:Y3, gap:2300, locks:true,
+      text:'A meta fiscal está cumprida.<br>Mesmo assim, a verba pode ser <em>bloqueada.</em>',
+      how:'Serviço com cadeado não funciona.<br>Toque 3 vezes nele para pressionar e liberar.' },
+  ];
+
+  const $ = id => document.getElementById(id);
+  const game = $('game'), board = $('board'), tray = $('tray'), preview = $('preview');
+  const slotEls = [...tray.querySelectorAll('.slot')];
+  const LOCK_SVG = '<svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 8V7a3 3 0 0 1 6 0v3H9z"/></svg>';
+  let c = 56, S = null, raf = 0;
+  const G = { year:0, results:[], jurosN:0 };
+
+  // ---------- SOM ----------
+  let ac = null, muted = false;
+  function tone(f1, f2, dur, type='square', vol=.07, delay=0){
+    if (!ac || muted) return;
+    const t = ac.currentTime + delay, o = ac.createOscillator(), g = ac.createGain();
+    o.type = type; o.frequency.setValueAtTime(f1, t);
+    if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    o.connect(g).connect(ac.destination); o.start(t); o.stop(t + dur + .02);
+  }
+  const sfx = {
+    place(){ tone(320,180,.08,'square',.09); tone(640,0,.05,'triangle',.05,.03); },
+    rotate(){ tone(900,700,.04,'triangle',.05); },
+    nope(){ tone(140,90,.18,'sawtooth',.06); },
+    out(){ tone(420,60,.5,'sawtooth',.06); },
+    chime(){ tone(1568,0,.12,'triangle',.05); tone(2093,0,.25,'triangle',.05,.07); },
+    spawn(){ tone(500,620,.06,'triangle',.03); },
+    end(){ tone(220,110,.8,'square',.06); },
+    lock(){ tone(180,0,.05,'square',.1); tone(120,0,.12,'square',.08,.06); },
+    hit(){ tone(700,500,.05,'square',.05); },
+    free(){ tone(523,0,.08,'triangle',.07); tone(784,0,.15,'triangle',.07,.08); },
+    alarm(){ tone(300,600,.25,'sawtooth',.05); tone(300,600,.25,'sawtooth',.05,.3); },
+  };
+  $('snd').onclick = () => { muted = !muted; $('snd').textContent = muted ? 'Som ✕' : 'Som ✓'; };
+
+  // ---------- LAYOUT ----------
+  function rel(el){ const g = game.getBoundingClientRect(), r = el.getBoundingClientRect();
+    return {left:r.left-g.left, top:r.top-g.top, width:r.width, height:r.height}; }
+
+  function layout(){
+    const W = window.innerWidth, H = window.innerHeight;
+    c = Math.floor(Math.min((Math.min(W, 480) - 28) / COLS, (H - 300) / ROWS, 68));
+    c = Math.max(c, 34);
+    document.documentElement.style.setProperty('--c', c + 'px');
+    const bw = c * COLS;
+    board.style.width = bw + 'px'; board.style.height = (c * ROWS) + 'px';
+    game.style.width = (bw + 24) + 'px';
+    if (S) S.pieces.forEach(p => { if (p.state === 'tray' || p.state === 'board') placeEl(p); });
+  }
+  window.addEventListener('resize', layout);
+
+  function sizeEl(p, unit, pad=2){
+    const el = p.el;
+    el.style.width = (p.w*unit - pad*2) + 'px';
+    el.style.height = (p.h*unit - pad*2) + 'px';
+    const L = Math.max(...p.n.split(' ').map(w => w.length));
+    el.style.fontSize = Math.max(6, Math.min(unit*0.22, 15, (p.w*unit - pad*2 - 6) / (L*0.55))) + 'px';
+    el.style.setProperty('--u', Math.min(p.w, p.h)*unit + 'px');
+    return {w:p.w*unit, h:p.h*unit};
+  }
+  function placeEl(p){
+    const el = p.el;
+    if (p.state === 'board'){
+      const br = rel(board);
+      sizeEl(p, c);
+      el.style.left = (br.left + p.x*c + 2) + 'px';
+      el.style.top  = (br.top  + p.y*c + 2) + 'px';
+    } else if (p.state === 'tray'){
+      const sr = rel(slotEls[p.slot]);
+      const m = Math.min((sr.width-8)/p.w, (sr.height-8)/p.h, c*0.62);
+      const s = sizeEl(p, m, 1);
+      el.style.left = (sr.left + (sr.width - s.w)/2 + 1) + 'px';
+      el.style.top  = (sr.top  + (sr.height - s.h)/2 + 1) + 'px';
+    }
+  }
+
+  function toast(t, s, ms=3800){
+    $('tt').textContent = t; $('ts').textContent = s || '';
+    $('toast').classList.add('on');
+    clearTimeout(toast._t); toast._t = setTimeout(() => $('toast').classList.remove('on'), ms);
+  }
+
+  // ---------- ESTADO ----------
+  function shuffle(a){ for (let i=a.length-1;i>0;i--){ const j=Math.random()*(i+1)|0; [a[i],a[j]]=[a[j],a[i]]; } return a; }
+  function newState(Y){
+    const queue = shuffle(Y.defs.map((d,i) => ({...d, id:i, state:'queue'})));
+    return { Y, queue, pieces:[], grid:Array(COLS*ROWS).fill(null), tray:[null,null,null,null], out:[],
+             t0:0, el:0, idx:0, running:false, jurosT:2500, drag:null,
+             zone: Y.zone ? {x:0, y:0, w:2, h:6} : null, dead:new Set(), shrunk:false,
+             lockT:6500 };
+  }
+  const spawnAt = i => i < 3 ? i*350 : 1000 + (i-2)*S.Y.gap;
+
+  function cellOK(p, q, r){
+    const i = r*COLS + q;
+    if (S.dead.has(i)) return false;
+    if (S.zone){
+      const z = S.zone, inZ = q >= z.x && q < z.x+z.w && r >= z.y && r < z.y+z.h;
+      if (inZ !== (p.k === 's')) return false;
+    }
+    return true;
+  }
+  function canPlace(p, x, y, w, h){
+    if (x < 0 || y < 0 || x + w > COLS || y + h > ROWS) return false;
+    for (let r=y; r<y+h; r++) for (let q=x; q<x+w; q++){
+      const v = S.grid[r*COLS+q]; if (v !== null && v !== p.id) return false;
+      if (!cellOK(p, q, r)) return false;
+    }
+    return true;
+  }
+  function setCells(p, val){ for (let r=p.y; r<p.y+p.h; r++) for (let q=p.x; q<p.x+p.w; q++) S.grid[r*COLS+q] = val; }
+  function updateFill(){
+    const usable = COLS*ROWS - S.dead.size;
+    const used = S.grid.filter(v => v !== null).length;
+    $('fillpct').textContent = Math.round(used / usable * 100) + '% ocupado';
+  }
+
+  function renderBoard(){
+    board.innerHTML = '';
+    if (S.zone){
+      const z = document.createElement('div'); z.className = 'zone'; z.id = 'zone';
+      z.innerHTML = '<b>SUS · 15%</b>';
+      board.appendChild(z); posZone();
+    }
+  }
+  function posZone(){
+    const z = $('zone'); if (!z) return;
+    z.style.left = 'calc(var(--c)*' + S.zone.x + ')'; z.style.top = 'calc(var(--c)*' + S.zone.y + ')';
+    z.style.width = 'calc(var(--c)*' + S.zone.w + ')'; z.style.height = 'calc(var(--c)*' + S.zone.h + ')';
+  }
+
+  function makeEl(p){
+    const el = document.createElement('div');
+    el.className = 'piece k-' + p.k;
+    el.innerHTML = '<span>' + p.n + '</span><div class="lock">' + LOCK_SVG + '<i></i></div>';
+    el.addEventListener('pointerdown', e => onDown(e, p));
+    game.appendChild(el); p.el = el;
+  }
+
+  function spawn(){
+    const p = S.queue[S.idx++];
+    let slot = S.tray.indexOf(null);
+    if (slot < 0){
+      const cands = S.pieces.filter(q => q.state === 'tray' && !(S.drag && S.drag.p === q && S.drag.moved))
+                            .sort((a,b) => a.arr - b.arr);
+      if (!cands.length){ p.state='out'; S.out.push(p); renderOut(); return; }
+      slot = cands[0].slot; knockOut(cands[0]);
+    }
+    p.state = 'tray'; p.slot = slot; p.arr = performance.now(); S.tray[slot] = p;
+    S.pieces.push(p); makeEl(p); placeEl(p);
+    p.el.classList.add('pop'); setTimeout(() => p.el && p.el.classList.remove('pop'), 400);
+    sfx.spawn();
+    if (S.idx >= S.queue.length) $('endbtn').hidden = false;
+  }
+
+  function knockOut(p){
+    if (p.state === 'tray') S.tray[p.slot] = null;
+    if (p.state === 'board') { setCells(p, null); updateFill(); }
+    p.state = 'out'; S.out.push(p);
+    const el = p.el; el.classList.remove('dragging'); el.classList.add('fall');
+    setTimeout(() => el.remove(), 750);
+    renderOut(); sfx.out();
+    const ob = $('outbar'); ob.classList.remove('flash'); void ob.offsetWidth; ob.classList.add('flash');
+  }
+  function renderOut(){
+    $('outn').textContent = S.out.length;
+    $('outchips').innerHTML = S.out.slice().reverse().map(p => '<span class="chip">'+p.n+'</span>').join('');
+  }
+
+  // ---------- ANO 2: o petróleo sai da base ----------
+  function shrinkZone(){
+    S.shrunk = true;
+    sfx.alarm();
+    toast('Receitas do petróleo saem da base de cálculo', 'O piso continua 15%. Mas 15% de uma base menor.', 4500);
+    // a área do SUS perde a linha de cima
+    const removed = [0, 1].map(q => 0*COLS + q);
+    S.zone = {x:0, y:1, w:2, h:5};
+    posZone();
+    removed.forEach(i => {
+      S.dead.add(i);
+      const d = document.createElement('div'); d.className = 'dead';
+      d.style.left = 'calc(var(--c)*' + (i % COLS) + ')'; d.style.top = 'calc(var(--c)*' + Math.floor(i / COLS) + ')';
+      d.style.width = d.style.height = 'var(--c)';
+      d.textContent = 'fora da base';
+      board.appendChild(d); requestAnimationFrame(() => d.classList.add('on'));
+    });
+    // serviços que estavam no espaço perdido caem
+    const hit = new Set(removed.map(i => S.grid[i]).filter(v => v !== null));
+    S.pieces.filter(p => p.state === 'board' && hit.has(p.id)).forEach((p, k) => setTimeout(() => p.state === 'board' && knockOut(p), 700 + k*200));
+    if (S.drag && S.drag.p.state === 'board' && hit.has(S.drag.p.id)) cancelDrag();
+    setTimeout(updateFill, 1200);
+  }
+
+  // ---------- ANO 3: o cadeado ----------
+  function lockOne(){
+    const cands = S.pieces.filter(p => p.state === 'board' && !p.locked && !(S.drag && S.drag.p === p));
+    if (!cands.length) return;
+    const p = cands[Math.random()*cands.length|0];
+    p.locked = 3; p.el.classList.add('locked'); updLock(p); sfx.lock();
+  }
+  function updLock(p){ p.el.querySelector('.lock i').textContent = '●'.repeat(p.locked); }
+  function pressLock(p){
+    p.locked--;
+    p.el.classList.remove('hit'); void p.el.offsetWidth; p.el.classList.add('hit');
+    if (p.locked <= 0){
+      p.locked = 0; p.el.classList.remove('locked'); sfx.free();
+      p.el.classList.add('freed'); setTimeout(() => p.el.classList.remove('freed'), 550);
+    } else { updLock(p); sfx.hit(); }
+  }
+
+  // ---------- ARRASTAR ----------
+  function onDown(e, p){
+    if (!S || !S.running || S.drag) return;
+    if (p.state !== 'tray' && p.state !== 'board') return;
+    e.preventDefault();
+    if (p.locked){ pressLock(p); return; }
+    S.drag = {p, sx:e.clientX, sy:e.clientY, moved:false, touch:e.pointerType !== 'mouse', pid:e.pointerId};
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+  }
+  function onMove(e){
+    const d = S.drag; if (!d || e.pointerId !== d.pid) return;
+    if (d.p.state === 'out' || d.p.locked) return;
+    if (!d.moved){
+      if (Math.hypot(e.clientX-d.sx, e.clientY-d.sy) < 7) return;
+      d.moved = true; d.p.el.classList.add('dragging'); sizeEl(d.p, c);
+      if (S.zone && d.p.k === 's') board.classList.add('want');
+    }
+    const g = game.getBoundingClientRect();
+    const pw = d.p.w*c, ph = d.p.h*c;
+    const lift = d.touch ? Math.min(70, ph/2 + 34) : 0;
+    const left = e.clientX - g.left - pw/2, top = e.clientY - g.top - ph/2 - lift;
+    d.p.el.style.left = (left+2) + 'px'; d.p.el.style.top = (top+2) + 'px';
+
+    const br = rel(board);
+    const col = Math.round((left - br.left)/c), row = Math.round((top - br.top)/c);
+    const tr = tray.getBoundingClientRect();
+    d.overTray = e.clientY > tr.top - 10;
+    d.col = col; d.row = row;
+    if (!d.overTray && col > -2 && row > -2 && col <= COLS && row <= ROWS){
+      d.valid = canPlace(d.p, col, row, d.p.w, d.p.h);
+      const cx = Math.max(0, Math.min(col, COLS - d.p.w)), cy = Math.max(0, Math.min(row, ROWS - d.p.h));
+      const px = d.valid ? col : cx, py = d.valid ? row : cy;
+      preview.style.display = 'block';
+      preview.className = d.valid ? '' : 'bad';
+      preview.style.left = (br.left + px*c) + 'px'; preview.style.top = (br.top + py*c) + 'px';
+      preview.style.width = (d.p.w*c) + 'px'; preview.style.height = (d.p.h*c) + 'px';
+    } else { d.valid = false; preview.style.display = 'none'; }
+  }
+  function detach(){
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', onUp);
+    window.removeEventListener('pointercancel', onUp);
+    preview.style.display = 'none'; board.classList.remove('want');
+  }
+  function cancelDrag(){
+    const d = S.drag; if (!d) return;
+    detach(); S.drag = null;
+    if (d.p.state !== 'out'){ d.p.el.classList.remove('dragging'); placeEl(d.p); }
+  }
+  function onUp(e){
+    const d = S.drag; if (!d || (e && e.pointerId !== d.pid)) return;
+    detach(); S.drag = null;
+    const p = d.p;
+    if (p.state === 'out') return;
+    p.el.classList.remove('dragging');
+
+    if (!d.moved){ rotate(p); return; }
+
+    if (d.valid && S.running && canPlace(p, d.col, d.row, p.w, p.h)){
+      if (p.state === 'board') setCells(p, null);
+      if (p.state === 'tray') S.tray[p.slot] = null;
+      p.state = 'board'; p.x = d.col; p.y = d.row; setCells(p, p.id);
+      placeEl(p); p.el.classList.add('placed'); setTimeout(() => p.el.classList.remove('placed'), 220);
+      sfx.place(); updateFill();
+    } else if (d.overTray && p.state === 'board' && S.tray.includes(null)){
+      setCells(p, null); const slot = S.tray.indexOf(null);
+      p.state = 'tray'; p.slot = slot; p.arr = performance.now(); S.tray[slot] = p;
+      placeEl(p); sfx.rotate(); updateFill();
+    } else {
+      placeEl(p); if (d.col !== undefined && !d.overTray) sfx.nope();
+    }
+    maybeEndEarly();
+  }
+  function rotate(p){
+    if (p.w === p.h) { nudge(p); return; }
+    if (p.state === 'tray'){ [p.w, p.h] = [p.h, p.w]; placeEl(p); sfx.rotate(); return; }
+    if (p.state === 'board'){
+      if (canPlace(p, p.x, p.y, p.h, p.w)){
+        setCells(p, null); [p.w, p.h] = [p.h, p.w]; setCells(p, p.id); placeEl(p); sfx.rotate();
+      } else nudge(p);
+    }
+  }
+  function nudge(p){ sfx.nope(); p.el.classList.remove('nope'); void p.el.offsetWidth; p.el.classList.add('nope'); }
+
+  // ---------- LOOP ----------
+  function tick(ts){
+    if (!S.running) return;
+    if (!S.t0) S.t0 = ts;
+    S.el = ts - S.t0;
+    while (S.idx < S.queue.length && S.el >= spawnAt(S.idx)) spawn();
+
+    if (S.el >= S.jurosT){
+      S.jurosT += 3000; G.jurosN++;
+      const j = $('juros');
+      j.style.width = Math.min(100, 40 + G.jurosN * 1.5) + '%';
+      const st = document.createElement('div'); st.className = 'stamp'; st.textContent = 'PAGO ✓';
+      j.appendChild(st); setTimeout(() => st.remove(), 1500);
+      sfx.chime();
+    }
+    if (S.Y.zone && !S.shrunk && S.el >= S.Y.shrinkAt) shrinkZone();
+    if (S.Y.locks && S.el >= S.lockT){ S.lockT += Math.max(1900, 3200 - S.el/45); lockOne(); }
+
+    $('tfill').style.width = Math.max(0, 100 - S.el / DUR * 100) + '%';
+    if (S.el >= DUR) { endYear(); return; }
+    raf = requestAnimationFrame(tick);
+  }
+  function maybeEndEarly(){
+    if (S.running && S.idx >= S.queue.length && S.tray.every(v => v === null) && !S.Y.locks && (!S.Y.zone || S.shrunk))
+      setTimeout(() => S.running && endYear(), 500);
+  }
+
+  function endYear(){
+    if (!S.running) return;
+    S.running = false; cancelAnimationFrame(raf);
+    $('endbtn').hidden = true;
+    cancelDrag();
+    const left = S.pieces.filter(p => p.state === 'tray');
+    left.forEach((p, i) => setTimeout(() => knockOut(p), 250 * i));
+    while (S.idx < S.queue.length){ const p = S.queue[S.idx++]; p.state = 'out'; S.out.push(p); }
+    setTimeout(() => {
+      sfx.end();
+      const total = S.Y.defs.length;
+      const locked = S.pieces.filter(p => p.state === 'board' && p.locked).length;
+      const kept = S.pieces.filter(p => p.state === 'board' && !p.locked).length;
+      G.results.push({kept, total, locked, tag:S.Y.tag});
+      G.year++;
+      if (G.year < YEARS.length) showYearCard(); else showResult();
+    }, 700 + 250 * left.length);
+  }
+  $('endbtn').onclick = () => endYear();
+
+  // ---------- TELAS ----------
+  function showYearCard(){
+    const Y = YEARS[G.year], n = G.year + 1;
+    $('yk').textContent = 'Ano ' + n + ' · ' + Y.tag;
+    $('yt').textContent = 'Ano ' + n;
+    $('ytext').innerHTML = Y.text;
+    $('yhow').innerHTML = Y.how;
+    const prev = G.results[G.results.length - 1];
+    if (prev){
+      $('yprev').innerHTML = 'Ano ' + G.year + ': <b>' + prev.kept + ' de ' + prev.total + '</b> serviços atendidos' +
+        (prev.locked ? ' · ' + prev.locked + ' bloqueados' : '') + '<br>Juros da dívida: <b>pagos ✓</b>';
+      $('yprev').classList.add('on');
+    } else $('yprev').classList.remove('on');
+    $('yearcard').classList.add('on');
+  }
+
+  function showResult(){
+    const kept = G.results.reduce((a,r) => a + r.kept, 0), total = G.results.reduce((a,r) => a + r.total, 0);
+    $('rscore').innerHTML = kept + '<small>/' + total + '</small>';
+    $('ryears').innerHTML = G.results.map((r, i) =>
+      '<div><span>Ano ' + (i+1) + '<small>' + r.tag + (r.locked ? ' · ' + r.locked + ' bloqueados no fim' : '') + '</small></span><b>' + r.kept + '/' + r.total + '</b></div>'
+    ).join('');
+    const msg = 'Joguei NÃO CABE: em 3 anos de orçamento, consegui manter ' + kept + ' de ' + total +
+      ' serviços públicos. Os juros da dívida? Pagos todo ano, fora do limite. O orçamento é uma escolha. #PLP299' +
+      (SHARE_URL ? '\n' + SHARE_URL : '');
+    $('wa').href = 'https://wa.me/?text=' + encodeURIComponent(msg);
+    $('copy').onclick = async () => {
+      try { await navigator.clipboard.writeText(msg); $('copy').textContent = 'Copiado ✓'; }
+      catch { $('copy').textContent = 'Não deu para copiar'; }
+      setTimeout(() => $('copy').textContent = 'Copiar resultado', 1800);
+    };
+    $('result').classList.add('on');
+  }
+
+  function setupYear(){
+    if (S) S.pieces.forEach(p => p.el && p.el.remove());
+    const Y = YEARS[G.year];
+    S = newState(Y);
+    $('hudyr').textContent = 'Ano ' + (G.year + 1);
+    $('tfill').style.width = '100%';
+    $('endbtn').hidden = true;
+    $('meta').hidden = !Y.locks; $('fillpct').hidden = !!Y.locks;
+    $('blbl').textContent = Y.locks ? 'Orçamento' : 'Orçamento · limite de despesas';
+    $('juros').style.width = Math.min(100, 40 + G.jurosN * 1.5) + '%';
+    renderBoard(); renderOut(); updateFill();
+  }
+  function startYear(){
+    $('yearcard').classList.remove('on');
+    setupYear(); layout();
+    S.running = true; S.t0 = 0; raf = requestAnimationFrame(tick);
+  }
+  function newGame(){
+    G.year = 0; G.results = []; G.jurosN = 0;
+    if (S) S.pieces.forEach(p => p.el && p.el.remove());
+    S = newState(YEARS[0]); renderBoard(); renderOut(); updateFill();
+    $('juros').style.width = '40%';
+    showYearCard();
+  }
+  $('play').onclick = () => {
+    try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); ac.resume(); } catch {}
+    $('intro').classList.remove('on'); newGame();
+  };
+  $('start').onclick = startYear;
+  $('again').onclick = () => { $('result').classList.remove('on'); newGame(); };
+
+  // ---------- CRÉDITOS, COMUNIDADE E VÍDEO ----------
+  function setupExtras(){
+    const esc = t => String(t).replace(/[&<>"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]));
+    $('ifoot').textContent = CONFIG.AUTOR_NOME;
+    $('aname').textContent = CONFIG.AUTOR_NOME;
+    $('abio').textContent = CONFIG.AUTOR_BIO;
+    $('av').textContent = CONFIG.AUTOR_NOME.split(' ').filter(Boolean).slice(0,2).map(w => w[0]).join('');
+    const al = $('alink');
+    $('ago').textContent = CONFIG.AUTOR_LINK_TXT + ' →';
+    if (CONFIG.AUTOR_LINK) al.href = CONFIG.AUTOR_LINK;
+    else al.addEventListener('click', e => e.preventDefault());
+    const cm = $('comm');
+    if (CONFIG.COMUNIDADE_URL) cm.href = CONFIG.COMUNIDADE_URL;
+    else cm.addEventListener('click', e => e.preventDefault());
+    $('vcred').innerHTML = 'Vídeo: ' + (CONFIG.VIDEO_CRED_URL
+      ? '<a href="' + esc(CONFIG.VIDEO_CRED_URL) + '" target="_blank" rel="noopener">' + esc(CONFIG.VIDEO_CREDITO) + '</a>'
+      : '<b>' + esc(CONFIG.VIDEO_CREDITO) + '</b>');
+    const v = $('vid');
+    v.addEventListener('error', () => $('vwrap').classList.add('missing'));
+    v.src = CONFIG.VIDEO_SRC + '#t=0.1';   // #t=0.1 mostra o primeiro quadro como capa no celular
+  }
+  setupExtras();
+
+  layout();
+})();
+</script>
+</body>
+</html>
