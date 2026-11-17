@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Não Cabe — o orçamento é uma escolha</title>
+<title>Não Cabe | O orçamento é uma escolha</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
@@ -200,7 +200,7 @@
 
 <!-- TELA INICIAL -->
 <div class="ov on" id="intro">
-  <div class="kick">PLP 299/2026 · ajuste fiscal</div>
+  <div class="kick">PLP 299/2026 · ajuste fiscal <br> </div>
   <h1 class="display">Não<em>cabe</em></h1>
   <p>Três anos de orçamento público.<br>Um minuto cada. Quem paga a conta?</p>
   <button id="play">Jogar</button>
@@ -232,10 +232,10 @@
       <span id="copy">Copiar resultado</span>
     </div>
     <section class="sec">
-      <div class="kick">Entenda o PLP 299 em 1 minuto</div>
+      <div class="kick">Entenda o PLP 299 em 2 minutos</div>
       <div class="vwrap" id="vwrap">
         <video id="vid" controls playsinline preload="metadata"></video>
-        <div class="vmiss"><b>Vídeo aqui</b>Coloque o arquivo <code>plp299.mp4</code> na mesma pasta deste jogo.</div>
+        <div class="vmiss"><b>Vídeo aqui</div>
       </div>
       <div class="vcred" id="vcred"></div>
       <a class="guide" href="https://ismael-ds.github.io/decodificando/plp299.html" target="_blank" rel="noopener">Ler o guia completo →</a>
@@ -262,15 +262,15 @@
 (() => {
   // ================= CONFIGURAÇÃO — edite aqui =================
   const CONFIG = {
-    SHARE_URL:      '',                       // endereço final do jogo (vai junto na mensagem do WhatsApp)
-    AUTOR_NOME:     'Francisco Daniel',
-    AUTOR_BIO:      'Advogado em João Pessoa (PB). Fiz este jogo para explicar o PLP 299 de um jeito que dá para sentir.',
-    AUTOR_LINK:     '',                       // ex.: https://instagram.com/seuperfil
-    AUTOR_LINK_TXT: '@seuperfil',
-    COMUNIDADE_URL: '',                       // link de convite da comunidade Mobilização Radical (MR) no WhatsApp
+    SHARE_URL:      'https://ismael-ds.github.io/nao-cabe/',                       // endereço final do jogo (vai junto na mensagem do WhatsApp)
+    AUTOR_NOME:     'Ismael Araujo',
+    AUTOR_BIO:      'Programador em João Pessoa (PB). Fiz este jogo para explicar o PLP 299 de um jeito que dá para sentir.',
+    AUTOR_LINK:     'https://www.instagram.com/ismael.araujo2003',                       // ex.: https://instagram.com/seuperfil
+    AUTOR_LINK_TXT: '@ismael.araujo2003',
+    COMUNIDADE_URL: 'https://whatsapp.com/channel/0029VbDc5k24NVij855fMP1L',             // link de convite da comunidade Mobilização Radical (MR) no WhatsApp
     VIDEO_SRC:      'plp299.mp4',             // arquivo na mesma pasta do index.html
-    VIDEO_CREDITO:  '@perfil-da-camarada',    // quem fez o vídeo
-    VIDEO_CRED_URL: '',                       // ex.: link do post original no Instagram
+    VIDEO_CREDITO:  '@osgatinhosexplicam',    // quem fez o vídeo
+    VIDEO_CRED_URL: 'https://www.instagram.com/osgatinhosexplicam/',                       // ex.: link do post original no Instagram
   };
   // ==============================================================
   const COLS = 6, ROWS = 6, DUR = 45000;
